@@ -1,0 +1,260 @@
+--*****************************************************************************
+--  @Copyright  All rights reserved.                    
+--  Module name : frontend
+--  Call by     : 
+--  Description : 
+--  IC          : 
+--  Version     : 1.0
+--  Note:       : 
+--  Author      : QIU Weibao
+--  Date        : 2013.08.06
+--  Update      : 
+--  
+--                                            
+--*****************************************************************************
+library IEEE;
+use IEEE.std_logic_1164.ALL;
+use IEEE.std_logic_arith.all;
+use IEEE.std_logic_unsigned.all;
+
+entity frontend is
+port
+(
+    I_reset        : in std_logic;                      --reset
+    I_sys_clk      : in std_logic;                    
+                   
+    I_scan_trig    : in std_logic;   --scan triger
+    I_reg_csr      : in std_logic_vector(31 downto 0);
+     
+    --ADC
+    I_adc_d        : in std_logic_vector(11 downto 0); 
+    I_adc_or       : in std_logic;               
+    
+    I_f2pc_full    : in std_logic;
+    
+    O_pixel_symbol : out std_logic; 
+    O_pixel_en     : out std_logic; 
+    O_pixel_data   : out std_logic_vector(15 downto 0);
+	 O_pulse_trig   : out std_logic
+);
+end frontend; 
+
+architecture rtl of frontend is
+
+--component fir_band_pass is                            
+--PORT 
+--(
+--    clk                : IN STD_LOGIC;
+--    reset_n            : IN STD_LOGIC;
+--    ast_sink_data    : IN STD_LOGIC_VECTOR (11 DOWNTO 0);
+--    ast_sink_valid    : IN STD_LOGIC;
+--    ast_source_ready: IN STD_LOGIC;
+--    ast_sink_error    : IN STD_LOGIC_VECTOR (1 DOWNTO 0);
+--    ast_source_data    : OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+--    ast_sink_ready    : OUT STD_LOGIC;
+--    ast_source_valid: OUT STD_LOGIC;
+--    ast_source_error: OUT STD_LOGIC_VECTOR (1 DOWNTO 0)
+--);
+--end component;
+
+component analytic_filter_h_a1 is                    -- component hilbert tansform
+generic(
+     input_data_width      : integer := 16;
+     output_data_width     : integer := 16;
+     filter_delay_in_clks  : integer := 7         --delay of hilbert filter (including pipeline delay)
+);
+port(
+    clk_i         : in std_logic;
+    rst_i         : in std_logic;                    --high level reset 
+    data_str_i    : in std_logic;                    --hilbert tranform enable
+    data_i        : in std_logic_vector(input_data_width-1 downto 0);
+    data_i_o      : out std_logic_vector(output_data_width-1 downto 0);
+    data_q_o      : out std_logic_vector(output_data_width-1 downto 0);
+    data_str_o    : out std_logic
+);
+end component;
+
+component r2p_corproc
+	port(
+		clk	: in std_logic;
+		ena	: in std_logic;
+		Xin	: in STD_LOGIC_VECTOR(15 downto 0);
+		Yin   : in STD_LOGIC_VECTOR(15 downto 0);		
+		Rout	: out STD_LOGIC_VECTOR(19 downto 0);
+		Aout	: out STD_LOGIC_VECTOR(19 downto 0)
+	);
+end component;
+
+--constant C_FILTER_DELAY    : integer := 17;      --filter delay 15, adc buffer 2
+constant C_CORDIC_DELAY     : integer := 100;--20; 
+
+signal s_scan_trig          :   std_logic:='0';                             
+signal s_work_start     	 :   std_logic;  
+
+signal S_fir_sink_valid     : std_logic;                        --filter input data valid 
+signal S_fir_sink_ready     : std_logic;                        --filter is able to accept data
+signal S_fir_source_valid   : std_logic;                        --assert by fir filter when there is valid data to output
+signal S_fir_source_error   : std_logic_vector(1 downto 0);        --"00" no error 
+signal S_fir_source_data    : std_logic_vector(15 downto 0);    --filter output data 
+
+signal S_hilbert_reset      : std_logic;                        --high level reset 
+signal S_hilbert_data_str_i : std_logic;
+signal S_hilbert_data_io    : std_logic_vector(15 downto 0);
+signal S_hilbert_data_qo    : std_logic_vector(15 downto 0);
+signal S_hilbert_data_str_o : std_logic;
+
+signal S_cordic_rout        :   std_logic_vector(19 downto 0):=x"00000";
+signal S_cordic_aout        :   std_logic_vector(19 downto 0);
+                        
+signal S_ad_buf        		 :   std_logic_vector(11 downto 0);                          
+                                                          
+signal S_ocnt     			 : std_logic_vector(11 downto 0);
+
+signal S_state 			    :   std_logic_vector(2 downto 0); 
+
+signal s_oen    				 : std_logic;
+signal s_den       			 : std_logic;                  
+
+signal s_scan_start 		    : std_logic; 
+signal S_scan_state 			 : std_logic_vector(1 downto 0);
+
+signal s_work_start_buf     : std_logic; 
+signal S_line_num           : std_logic_vector(9 downto 0);
+
+constant C_line_delay  		 : integer := 180000;--40000;
+signal S_line_delay    		 : std_logic_vector(19 downto 0):="00000000000000000000";  
+
+signal S_hilbert_data_i 	 : std_logic_vector(15 downto 0);                    
+signal S_pulse_trig   	  	 : std_logic;
+
+begin
+
+s_work_start <= I_reg_csr(0);   
+
+S_hilbert_data_i<= I_adc_d(11) &  I_adc_d(11) & I_adc_d(11) & I_adc_d(11) & I_adc_d;
+
+--U1_fir_band_pass_inst:fir_band_pass
+--port map(
+--    clk              => I_sys_clk,                
+--    reset_n          => I_reset,        
+--    ast_sink_data    => I_adc_d,                    --input data 
+--    ast_sink_valid   => S_fir_sink_valid,
+--    ast_source_ready => '1',
+--    ast_sink_error   => "00",
+--    ast_source_data  => S_fir_source_data,
+--    ast_sink_ready   => S_fir_sink_ready,                --output when fir core is ready to accept data for filter
+--    ast_source_valid => S_fir_source_valid,
+--    ast_source_error => S_fir_source_error
+--);                
+
+U2_analytic_filter_h_a1_inst:analytic_filter_h_a1
+generic map( 
+    input_data_width     => 16,         
+    output_data_width    => 16,
+    filter_delay_in_clks => 7                             --delay of hilbert filter (including pipeline delay)
+)
+port map(
+    clk_i      => I_sys_clk,
+    rst_i      => S_hilbert_reset,                        --high reset
+    data_str_i => S_hilbert_data_str_i,
+    data_i     => S_hilbert_data_i,--S_fir_source_data,
+    data_i_o   => S_hilbert_data_io,
+    data_q_o   => S_hilbert_data_qo,
+    data_str_o => S_hilbert_data_str_o                    -- delay 7 clock than data_str_i
+);                                                                                               
+  
+U6_r2p_corproc_inst:r2p_corproc
+port map
+(
+    clk  => I_sys_clk,
+    ena  => '1',
+    Xin  => S_hilbert_data_io,
+    Yin  => S_hilbert_data_qo,
+    Rout => S_cordic_rout,
+    Aout => S_cordic_aout
+); 
+
+process(I_sys_clk,I_reset)
+  begin
+    if I_reset = '0' then
+		S_state  <= (others=>'0');
+		S_ocnt   <= (others=>'0');
+		s_oen 	<= '0';
+		s_den    <= '0';
+		S_pulse_trig <= '0';
+	  	S_hilbert_reset       <= '1';
+	  	S_hilbert_data_str_i  <= '0'; 
+	elsif rising_edge(I_sys_clk) then  
+	
+	    s_work_start_buf <=  s_work_start;  	    	    
+	    s_scan_trig      <=  I_scan_trig;
+--	    S_ad_buf <= I_adc_d(11 downto 0); 
+        S_hilbert_data_str_i  <= '1';   
+        S_hilbert_reset       <= '0';
+	  
+		case S_state is
+		    when "000" =>   			    							
+				  if (s_scan_trig = '0' and I_scan_trig = '1' and s_work_start_buf = '1')then
+				      S_state <= "001";	
+				      s_oen <= '1'; 
+				  	 S_line_num <= (others => '0');
+				  	 S_line_delay <= (others => '0');
+				  else 
+				      S_ocnt <= (others=>'0');
+				      s_oen <= '0';
+		            s_den <= '0';
+		            S_line_num <= (others => '0');
+				  	 S_line_delay <= (others => '0');
+				  	 S_pulse_trig <= '0';
+				  end if;
+				
+			 when "001" => 	
+				  S_pulse_trig <= '1';
+				  if (S_ocnt >= C_CORDIC_DELAY) then	 
+				    S_state <= "010";	
+				    s_den <= '1';     
+					  S_ocnt <= (others=>'0');	
+				  else
+				    S_ocnt <= S_ocnt + 1;				
+				  end if;
+				  
+			 when "010" => 
+			    if (S_ocnt >= 1023) then	 
+				    S_state <= "011";	    
+					  S_ocnt <= (others=>'0');
+					  s_den <= '0';
+					  S_line_num <= S_line_num + 1;
+					  S_pulse_trig <= '0';
+				  else
+				    S_ocnt <= S_ocnt + 1;				
+				  end if;
+--				  S_line_delay <= S_line_delay + 1;
+--				  
+--			 when "011" => 
+--			      if S_line_num > 999 then
+--						S_state <= "100";
+--					else
+--						if S_line_delay > C_line_delay then
+--							S_state <= "001";
+--							S_line_delay <= (others => '0');
+--						else
+--							S_line_delay <= S_line_delay + 1;
+--						end if;
+--					end if;		
+					
+			 when others=>
+			     S_state <= (others=>'0');
+		         S_ocnt <= (others=>'0');
+		         s_oen <= '0';
+		         s_den <= '0';
+		         S_pulse_trig <= '0';   
+		end case ;
+  end if;
+end process;                                                                                                    
+ 
+O_pixel_symbol <= s_den;                  
+O_pixel_data   <= S_cordic_rout(19 downto 4);	  
+O_pixel_en     <= s_den;--s_oen;  
+O_pulse_trig   <= S_pulse_trig;
+    
+end rtl;

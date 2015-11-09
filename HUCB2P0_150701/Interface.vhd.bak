@@ -1,0 +1,343 @@
+--*****************************************************************************
+--  @Copyright  All rights reserved.                    
+--  Module name : Interface
+--  Call by     : 
+--  Description : 
+--  IC          : EP2S60F672I4
+--  Version     : 1.0
+--  Note:       : 
+--  Author      : Weibao Qiu
+--  Date        : 2009.05.24
+--  Update      : 
+--                                
+--*****************************************************************************
+library IEEE;
+use IEEE.std_logic_1164.ALL;
+use IEEE.std_logic_arith.all;
+use IEEE.std_logic_unsigned.all;
+
+entity Interface is
+port
+(
+    I_reset         : in std_logic;          
+    I_sys_clk       : in std_logic;                     
+    
+    --work control
+    O_register      : out std_logic_vector(31 downto 0);    
+    
+    --image data output
+    I_data_en       : in std_logic; 
+    I_data_symbol   : in std_logic; 
+    I_data          : in std_logic_vector(15 downto 0); 
+    
+    ---usb FIFO
+    O_wfifo_reset   : out std_logic; 
+    
+    O_usb_wrreq     : out std_logic;  
+    O_usb_din       : out std_logic_vector(15 downto 0);
+                    
+    O_usb_rdreq	    : out std_logic; 
+    I_usb_dout		  : in std_logic_vector(31 downto 0);
+    I_usb_rdempty	  : in std_logic   
+);
+end Interface;
+
+architecture rtl of Interface is
+ 
+-----------------------------  
+constant c_speed_test  : integer := 200000;--40000;                         
+                    
+signal s_work_start    : std_logic := '0';
+signal s_work_mode     : std_logic_vector (1 downto 0);  
+
+signal S_usb_rdreq     : std_logic;
+signal S_usb_dout      : std_logic_vector(31 downto 0);
+signal S_usb_rdempty   : std_logic;
+
+------------usb read state--------------
+signal S_usb_pulse_state : std_logic_vector(1 downto 0);
+
+-------constant for reset and logic judgement------------------
+constant C_RST_ON		: std_logic := '0'; 							--reset signal the system is low reset 
+constant C_ACT_ON		: std_logic := '1'; 							--logic  judgement signal 
+constant C_ACT_OFF	: std_logic := '0';    
+
+signal S_case_test  : std_logic_vector(1 downto 0);
+signal S_case_work  : std_logic_vector(1 downto 0);
+
+signal S_register   : std_logic_vector(31 downto 0):="00000000000000000000000000000000";
+signal s_test_cn    :   std_logic_vector(23 downto 0);
+signal s_work_cn    :   std_logic_vector(19 downto 0);
+signal s_line_no    :   std_logic_vector(15 downto 0);
+signal s_line_comb  :   std_logic_vector(15 downto 0);
+
+signal S_data_en     : std_logic;
+
+signal S_data       : std_logic_vector(15 downto 0);
+
+signal s_switch        : std_logic;     
+signal s_pixel_symbol        : std_logic;   
+
+signal  s_state     : std_logic_vector (3 downto 0);
+
+signal  s_dcnt     : std_logic_vector (15 downto 0);
+signal  s_pcnt     : std_logic_vector (15 downto 0);
+signal  s_pre_data     : std_logic_vector (15 downto 0);
+
+begin   
+
+O_usb_wrreq <= s_pixel_symbol;
+O_usb_din <= S_data   when s_switch ='1' else s_pre_data;
+
+O_usb_rdreq <= S_usb_rdreq;
+
+S_usb_dout <= I_usb_dout;
+S_usb_rdempty <= I_usb_rdempty;
+
+---------
+s_work_start <= S_register(0);
+s_work_mode <= S_register(3 downto 2);
+
+O_register  <= S_register ;
+O_wfifo_reset <= not S_register(0);
+
+---------------------------------------------------------------------
+-- To navigate the dsc data between the test and work    
+--------------------------------------------------------------------- 
+process(I_reset, I_sys_clk)
+begin
+    if(I_reset = '0')then                                     
+        S_data_en <= '0'; 
+        S_data <= (others => '0'); 
+        s_test_cn <= (others => '0'); 
+        s_work_cn <= (others => '0'); 
+        S_case_test <= (others => '0'); 
+        S_case_work <= (others => '0');  
+        s_line_no <= (others => '0');   
+        s_line_comb <=  (others => '0');                                                                                                           
+    elsif rising_edge(I_sys_clk) then      
+        case s_work_mode is
+            when "00" =>   --Test USB             
+                                                
+                case S_case_test is
+                    when "00" =>
+                        if (s_work_start = '1') then
+                            S_case_test <= "01";   
+                        else
+                            S_case_test <= "00";
+                            s_test_cn   <=  (others => '0'); 
+                            s_line_no   <=  (others => '0');  
+                            s_line_comb   <=  (others => '0'); 
+                        end if;
+                
+                    when "01" =>                                                  
+                        s_test_cn <= s_test_cn + 1;
+                        if s_test_cn < 512 then-- fpga 512 * 32 -> cpu 1024 *16
+                            S_data_en <= '1';--wr fifo 
+                        else
+                            S_data_en <= '0';
+                            S_case_test <= "10"; 
+                        end if;          
+                        
+                        if S_data_en = '1' then
+                           -- S_data <= S_data + x"0001";--s_line_comb + x"0001";
+                            S_data <= s_line_comb + x"0001";
+                   --     else
+                   --         S_data <= (others => '0');
+                        end if;                                                           
+                
+                    when "10" =>  
+                        if (s_work_start = '0') then
+                            S_case_test <= "00";                                       
+                        elsif(s_test_cn > c_speed_test)then
+                            S_case_test <= "00";   
+                            s_test_cn   <=  (others => '0'); 
+                            
+                            if(s_line_no < 499)then   
+                                s_line_no <= s_line_no + '1';
+                            else
+                                s_line_no <= (others => '0');
+                 --               S_data <= (others => '0'); 
+                            end if;                        
+                            s_line_comb <= "000" & s_line_no(15 downto 3);
+                        
+                        else
+                            s_test_cn <= s_test_cn + '1'; 
+                        end if;  
+                
+                    when others =>            
+                        S_case_test <= "00";  
+                        s_test_cn <= (others => '0');   
+                        s_line_no <= (others => '0');  
+                        s_line_comb <= (others => '0');                      
+                end case;                                                                         
+            
+            when "01" =>   --Work 
+                
+                S_data <= I_data;                                                                 
+                S_data_en <= I_data_symbol;                                         
+
+            when OTHERS =>        
+                S_data_en <= '0'; 
+                S_data <= (others => '0'); 
+                s_test_cn <= (others => '0'); 
+                s_work_cn <= (others => '0'); 
+                S_case_test <= (others => '0'); 
+                S_case_work <= (others => '0');    
+                                                       
+        end case;                          
+    end if; 
+end process;  
+
+process(I_reset,I_sys_clk)
+begin
+  if I_reset = '0' then
+    s_state <= "0000";   
+    s_switch <= '0';
+    s_dcnt <= (others => '0');
+    s_pcnt <= (others => '0');
+    s_pixel_symbol <= '0';
+    s_pre_data <= (others => '0');
+  elsif rising_edge(I_sys_clk) then
+      case s_state is
+        when "0000" => 
+            if(s_work_start = '1')then       
+                s_state <= "0001"; 
+                s_switch <= '0';
+                s_pixel_symbol <= '1';
+                s_pre_data <= x"FF5B";
+            else
+                s_state <= "0000";   
+                s_switch <= '0';
+                s_dcnt <= (others => '0');
+                s_pcnt <= (others => '0');
+                s_pre_data <= (others => '0');
+                s_pixel_symbol <= '0';
+            end if;
+            
+        when "0001" => 
+            s_pre_data <= x"5000";
+            s_state <= "0010";
+            
+        when "0010" => 
+            s_pre_data <= x"FF5D";  
+            s_state <= "0011";  
+        
+        when "0011" => 
+            s_pre_data <= x"5000";
+            s_state <= "0100";               
+        
+        when "0100" => 
+            s_pixel_symbol <= '0';
+            if (s_work_start = '0') then 
+                s_state <= "0000"; 
+            elsif(S_data_en = '1') then 
+                s_state <= "0101";    
+                s_switch <= '1';
+                s_pixel_symbol <= '1';     
+            end if;             
+        
+        when "0101" =>  
+            if (s_work_start = '0') then 
+                s_state <= "0000"; 
+                s_pixel_symbol <= '0';
+                s_dcnt <= (others => '0');   
+            elsif(S_data_en = '0')then  
+                s_state <= "0110";                    
+                s_pixel_symbol <= '0';   
+            end if;                
+      
+        when "0110" =>
+            s_pcnt <= s_pcnt + '1';    
+            if(s_pcnt > 498)then                --number of line per image,    1000 initially             
+                s_state <= "0111";   
+                s_pcnt <= (others => '0');
+            else
+                s_state <= "0100";      
+            end if;                    
+        
+        when "0111" =>    
+            s_switch <= '0'; 
+            s_pixel_symbol <= '1'; 
+            s_pre_data <= x"FFFF";  
+            s_state <= "1000"; 
+            
+        when "1000" =>    
+            s_pre_data <= x"8413";  
+            s_state <= "1001"; 
+            
+        when "1001" =>    
+            s_pre_data <= x"FFFF";   
+            s_state <= "1010"; 
+         
+        when "1010" =>    
+            s_pre_data <= x"1421";  
+            s_state <= "1011";     
+               
+        when "1011" =>    
+            s_pre_data <= x"FFFF"; 
+            s_dcnt <= s_dcnt + '1';  
+            if(s_dcnt > 503)then                --remaining data. 512-8   
+            --if(s_dcnt > 1015)then                --remaining data. 1024-8           
+                s_state <= "1100";   
+                s_dcnt <= (others => '0'); 
+                s_pixel_symbol <= '0';  
+            end if; 
+            
+        when "1100" =>                  
+            s_pixel_symbol <= '0';
+            s_state <= "0000";                                   
+            
+        when others =>            
+            s_state <= "0000";   
+            s_switch <= '0';
+            s_dcnt <= (others => '0');
+            s_pcnt <= (others => '0');
+            s_pre_data <= (others => '0');
+            s_pixel_symbol <= '0';                      
+      end case;   
+  end if;
+end process;
+
+
+	      
+------------read data from usb 3.0 to FPGA----------work well
+process(I_sys_clk,I_reset)
+begin
+    if I_reset = '0' then
+        S_usb_rdreq	<= C_ACT_OFF; 
+        S_usb_pulse_state	<= (others=> '0');
+        S_register	<= (others=> '0');
+    elsif rising_edge(I_sys_clk) then        
+        if S_usb_rdempty	= C_ACT_OFF then 					--data not empty usb has write data into fifo 		
+            S_usb_rdreq		<= C_ACT_ON; 
+        else
+            S_usb_rdreq		<= C_ACT_OFF; 
+        end if;
+         
+        case S_usb_pulse_state is										--execute and pause correct
+            when "00" =>
+                if S_usb_dout = x"5b5a0000" then
+       	           S_usb_pulse_state		<= S_usb_pulse_state + 1;
+       	        end if;
+       	   	 
+       	   	when "01" =>
+       	   	    if S_usb_dout = x"7f7e0000" then
+       	   	        S_usb_pulse_state		<= S_usb_pulse_state + 1;
+       	   	    end if;
+       	   	  
+       	   	when "10" =>
+       	   	    if S_usb_dout /= x"7f7e0000" then
+       	   	        S_usb_pulse_state			<= "00" ;
+       	   	        S_register <= S_usb_dout;
+           	    end if;
+           	  
+       	   	when others=>
+       	   	    S_usb_pulse_state			<= "00" ;
+       	   	
+        end case;
+    end if;
+end process;  	 	
+     	  
+       
+end rtl;

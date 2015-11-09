@@ -1,0 +1,35 @@
+
+State Machine - |HUCB2P0_TOP|usb_top:U33_usbcore|usb_uart:usb_uart_inst|R_tx_state
+Name R_tx_state.TX_DOING R_tx_state.TX_DONE_PRE R_tx_state.TX_DOING_PRE R_tx_state.TX_IDLE R_tx_state.TX_DONE 
+R_tx_state.TX_IDLE 0 0 0 0 0 
+R_tx_state.TX_DOING_PRE 0 0 1 1 0 
+R_tx_state.TX_DONE_PRE 0 1 0 1 0 
+R_tx_state.TX_DOING 1 0 0 1 0 
+R_tx_state.TX_DONE 0 0 0 1 1 
+
+State Machine - |HUCB2P0_TOP|usb_top:U33_usbcore|usb_uart:usb_uart_inst|R_rx_state
+Name R_rx_state.RX_DOING R_rx_state.RX_DONE R_rx_state.RX_IDLE 
+R_rx_state.RX_IDLE 0 0 0 
+R_rx_state.RX_DOING 1 0 1 
+R_rx_state.RX_DONE 0 1 1 
+
+State Machine - |HUCB2P0_TOP|usb_top:U33_usbcore|usb_gpif_ctrl:usb_gpif_ctrl_inst|R_usb_rd_state
+Name R_usb_rd_state.0110 R_usb_rd_state.0101 R_usb_rd_state.0100 R_usb_rd_state.0011 R_usb_rd_state.0010 R_usb_rd_state.0001 R_usb_rd_state.0000 
+R_usb_rd_state.0000 0 0 0 0 0 0 0 
+R_usb_rd_state.0001 0 0 0 0 0 1 1 
+R_usb_rd_state.0010 0 0 0 0 1 0 1 
+R_usb_rd_state.0011 0 0 0 1 0 0 1 
+R_usb_rd_state.0100 0 0 1 0 0 0 1 
+R_usb_rd_state.0101 0 1 0 0 0 0 1 
+R_usb_rd_state.0110 1 0 0 0 0 0 1 
+
+State Machine - |HUCB2P0_TOP|usb_top:U33_usbcore|usb_gpif_ctrl:usb_gpif_ctrl_inst|R_usb_wr_state
+Name R_usb_wr_state.0111 R_usb_wr_state.0110 R_usb_wr_state.0101 R_usb_wr_state.0100 R_usb_wr_state.0011 R_usb_wr_state.0010 R_usb_wr_state.0001 R_usb_wr_state.0000 
+R_usb_wr_state.0000 0 0 0 0 0 0 0 0 
+R_usb_wr_state.0001 0 0 0 0 0 0 1 1 
+R_usb_wr_state.0010 0 0 0 0 0 1 0 1 
+R_usb_wr_state.0011 0 0 0 0 1 0 0 1 
+R_usb_wr_state.0100 0 0 0 1 0 0 0 1 
+R_usb_wr_state.0101 0 0 1 0 0 0 0 1 
+R_usb_wr_state.0110 0 1 0 0 0 0 0 1 
+R_usb_wr_state.0111 1 0 0 0 0 0 0 1 

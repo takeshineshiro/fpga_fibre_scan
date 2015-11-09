@@ -1,0 +1,25 @@
+PLL_Name	adc_pll:U5_adc_pll|adc_pll_0002:adc_pll_inst|altera_pll:altera_pll_i|general[0].gpll~FRACTIONAL_PLL
+PLLJITTER	19
+PLLSPEmax	50
+PLLSPEmin	-50
+
+PLL_Name	adc_pll:U5_adc_pll|adc_pll_0002:adc_pll_inst|altera_pll:altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER
+PLLJITTER	NA
+PLLSPEmax	NA
+PLLSPEmin	NA
+
+PLL_Name	usb_121pll:U4_usb_pll|usb_121pll_0002:usb_121pll_inst|altera_pll:altera_pll_i|general[0].gpll~FRACTIONAL_PLL
+PLLJITTER	48
+PLLSPEmax	50
+PLLSPEmin	-50
+
+PLL_Name	usb_121pll:U4_usb_pll|usb_121pll_0002:usb_121pll_inst|altera_pll:altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER
+PLLJITTER	NA
+PLLSPEmax	NA
+PLLSPEmin	NA
+
+PLL_Name	usb_121pll:U4_usb_pll|usb_121pll_0002:usb_121pll_inst|altera_pll:altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER
+PLLJITTER	NA
+PLLSPEmax	NA
+PLLSPEmin	NA
+

@@ -1,0 +1,106 @@
+module usb_top(
+    input                   I_sys_clk           ,
+    input                   I_usb_clk           ,
+        
+    input                   I_sys_rst           ,
+    input                   I_usb_rst           ,
+    //===================System GPIF data in/out====================
+    input                   I_usb_wfifo_aclr    ,
+    input                   I_usb_wrreq         ,
+    input   [15: 0]         I_usb_din           ,
+    output                  O_usb_wrfull        ,
+    output  [12: 0]         O_usb_wruesdw       ,
+        
+    input                   I_usb_rdreq         ,
+    output  [31: 0]         O_usb_dout          ,
+    output                  O_usb_rdempty       ,
+    //=====================System usb_uart_if=========================== 
+    input                   I_usb_uart_tx_req   ,
+    input   [7 : 0]         I_usb_uart_tx_data  ,
+    output                  O_usb_uart_tx_full  ,
+    
+    input                   I_usb_uart_rx_req   ,
+    output  [7 : 0]         O_usb_uart_rx_data  ,
+    output                  O_usb_uart_rx_empty ,
+    //==================USB3.0 IO=======================================
+    output                  O_usb_pclk          ,
+    output                  O_usb_clk           ,
+            
+    input                   I_usb_flga          ,
+    input                   I_usb_flgb          ,
+            
+    output                  O_usb_cs            , // CTL[0]  SLCS#  
+    output                  O_usb_wr            , // CTL[1]  SLWR#  
+    output                  O_usb_rd            , // CTL[2]  SLOE#  
+    output                  O_usb_oe            , // CTL[3]  SLRD#  
+    output                  O_usb_a0            , // CTL[4]  FLAGA  
+    output                  O_usb_a1            , // CTL[5]  FLAGB  
+    output                  O_usb_pkt           , // CTL[7]  PKTEND#  
+    output                  O_usb_reset         , // CTL[12] A0     
+                                                  // CTL[11] A1          
+    inout  [31:0]           IO_usb_dq           , 
+                                                            
+    output                  O_usb_uart_txd      , 
+    input                   I_usb_uart_rxd      ,
+    
+    input                   I_usb_dir
+);
+
+
+usb_gpif_ctrl   usb_gpif_ctrl_inst(
+    .I_sys_clk           (I_sys_clk             ),
+    .I_usb_clk           (I_usb_clk             ),
+                                                
+    .I_sys_rst           (I_sys_rst             ),
+    .I_usb_rst           (I_usb_rst             ),
+                                                
+    .I_usb_wfifo_aclr    (I_usb_wfifo_aclr      ),
+    .I_usb_wrreq         (I_usb_wrreq           ),
+    .I_usb_din           (I_usb_din             ),
+    .O_usb_wrfull        (O_usb_wrfull          ),
+    .O_usb_wruesdw       (O_usb_wruesdw         ),
+                                                
+    .I_usb_rdreq         (I_usb_rdreq           ),
+    .O_usb_dout          (O_usb_dout            ),
+    .O_usb_rdempty       (O_usb_rdempty         ),
+                                                
+    .O_usb_pclk          (O_usb_pclk            ),
+    .O_usb_clk           (O_usb_clk             ),
+                                                
+    .I_usb_flga          (I_usb_flga            ),
+    .I_usb_flgb          (I_usb_flgb            ),
+                                                
+    .O_usb_cs            (O_usb_cs              ), 
+    .O_usb_wr            (O_usb_wr              ), 
+    .O_usb_rd            (O_usb_rd              ), 
+    .O_usb_oe            (O_usb_oe              ), 
+    .O_usb_a0            (O_usb_a0              ), 
+    .O_usb_a1            (O_usb_a1              ), 
+    .O_usb_pkt           (O_usb_pkt             ), 
+    .O_usb_reset         (O_usb_reset           ), 
+                                                
+    .IO_usb_dq           (IO_usb_dq             ),
+    
+    .I_usb_dir           (I_usb_dir             )
+);  
+    
+usb_uart  usb_uart_inst(    
+    .I_sys_clk           (I_sys_clk             ),
+    .I_usb_clk           (I_usb_clk             ),
+        
+    .I_sys_rst           (I_sys_rst             ),
+    .I_usb_rst           (I_usb_rst             ),
+                            
+    .I_usb_uart_tx_req   (I_usb_uart_tx_req     ),
+    .I_usb_uart_tx_data  (I_usb_uart_tx_data    ),
+    .O_usb_uart_tx_full  (O_usb_uart_tx_full    ),
+                            
+    .I_usb_uart_rx_req   (I_usb_uart_rx_req     ),
+    .O_usb_uart_rx_data  (O_usb_uart_rx_data    ),
+    .O_usb_uart_rx_empty (O_usb_uart_rx_empty   ),
+                          
+    .O_usb_uart_txd      (O_usb_uart_txd        ), 
+    .I_usb_uart_rxd      (I_usb_uart_rxd        )
+);
+
+endmodule

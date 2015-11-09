@@ -1,0 +1,774 @@
+--*****************************************************************************
+--  @Copyright 2013 by SIAT_HFUS_TEAM, All rights reserved.                    
+--  Module name : HUCB2P0_TOP
+--  Call by     : 
+--  Description : this module is the top module of HUCB2P0.
+--  IC          : 5CGXFC7D7F31C8N
+--  Version     : A                                                    
+--  Note:       : 
+--  Author      : Peitian Mu 
+--  Date        : 2013.09.12                                                  
+--  Update      : 
+--*****************************************************************************
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
+library work;
+
+entity HUCB2P0_TOP is
+port
+(       
+    I_reset             : in    std_logic;  
+    I_ref_clk           : in    std_logic; 
+                        
+    DDR3_A0             : out   std_logic;
+    DDR3_A1             : out   std_logic;
+    DDR3_A2             : out   std_logic;
+    DDR3_A3             : out   std_logic;
+    DDR3_A4             : out   std_logic;
+    DDR3_A5             : out   std_logic;
+    DDR3_A6             : out   std_logic;
+    DDR3_A7             : out   std_logic;
+    DDR3_A8             : out   std_logic;
+    DDR3_A9             : out   std_logic;
+    DDR3_A10            : out   std_logic;
+    DDR3_A11            : out   std_logic;
+    DDR3_A12            : out   std_logic;
+    DDR3_A13            : out   std_logic;
+                        
+    DDR3_D0             : inout std_logic;
+    DDR3_D1             : inout std_logic;
+    DDR3_D2             : inout std_logic;
+    DDR3_D3             : inout std_logic;
+    DDR3_D4             : inout std_logic;
+    DDR3_D5             : inout std_logic;
+    DDR3_D6             : inout std_logic;
+    DDR3_D7             : inout std_logic;
+    DDR3_D8             : inout std_logic;
+    DDR3_D9             : inout std_logic;
+    DDR3_D10            : inout std_logic;
+    DDR3_D11            : inout std_logic;
+    DDR3_D12            : inout std_logic;
+    DDR3_D13            : inout std_logic;
+    DDR3_D14            : inout std_logic;
+    DDR3_D15            : inout std_logic;
+                        
+    DDR3_BA0            : out   std_logic;
+    DDR3_BA1            : out   std_logic;
+    DDR3_BA2            : out   std_logic;
+                        
+    DDR3_CAS            : out   std_logic_vector(0 downto 0);
+    DDR3_RAS            : out   std_logic_vector(0 downto 0);
+    DDR3_WE             : out   std_logic_vector(0 downto 0);
+    DDR3_CLK            : out   std_logic_vector(0 downto 0);--LVDS
+    DDR3_CLK_n          : out   std_logic_vector(0 downto 0);--LVDS
+    DDR3_DQS0           : inout std_logic;--LVDS
+    DDR3_DQS0_n         : inout std_logic;--LVDS
+    DDR3_DQS1           : inout std_logic;--LVDS
+    DDR3_DQS1_n         : inout std_logic;--LVDS
+    DDR3_ODT            : out   std_logic_vector(0 downto 0);
+    DDR3_DML            : out   std_logic;
+    DDR3_CKE            : out   std_logic_vector(0 downto 0);
+    DDR3_DMU            : out   std_logic;
+    DDR3_CS             : out   std_logic_vector(0 downto 0);
+    DDR3_RST            : out   std_logic;
+                        
+    --ADC ADS58C48
+    O_adca_sen          : out   std_logic;
+    I_adca_sd           : in    std_logic;
+    O_adca_sdata        : out   std_logic;
+    O_adca_sclk         : out   std_logic;
+    O_adca_rst          : out   std_logic;
+    O_adca_pdn          : out   std_logic;
+    O_adca_snrb0        : out   std_logic;
+    O_adca_snrb1        : out   std_logic;   
+                        
+    I_adca_oclk         : in    std_logic;
+                        
+    I_adca_d            : in    std_logic_vector(5 downto 0);
+    I_adcb_d            : in    std_logic_vector(5 downto 0);
+    I_adcc_d            : in    std_logic_vector(5 downto 0);
+    I_adcd_d            : in    std_logic_vector(5 downto 0);
+                        
+    --ADC AD9634        
+    I_adce_clk          : in    std_logic;
+    I_adce_d            : in    std_logic_vector(5 downto 0);
+    I_adce_or           : in    std_logic;--LVDS
+    O_adce_csb          : out   std_logic;
+    O_adce_sdio         : out   std_logic;
+    O_adce_sclk         : out   std_logic;
+                        
+    --ADC AD9230        
+    I_adcf_clk          : in    std_logic;
+    I_adcf_d            : in    std_logic_vector(11 downto 0);   
+    I_adcf_or           : in    std_logic;                      
+    O_adcf_pwdn         : out   std_logic; 
+    O_adcf_csb          : out   std_logic;
+    O_adcf_sclk         : out   std_logic;
+    O_adcf_sdio         : out   std_logic;         
+    O_adcf_reset        : out   std_logic;
+                        
+    --ADC AD9235        
+    I_m_adc_d           : in    std_logic_vector(11 downto 0);
+    O_m_adc_clk         : out   std_logic;
+    I_m_adc_otr         : in    std_logic;
+    O_m_adc_pdwn        : out   std_logic;                        
+                        
+    O_pulse             : out   std_logic_vector(3 downto 0); 
+    O_pulse_0pd         : out   std_logic;
+    O_pulse_1pd         : out   std_logic;
+    O_pulse_2pd         : out   std_logic;
+    O_pulse_3pd         : out   std_logic;
+    O_8220pulse         : out   std_logic_vector(3 downto 0); 
+    O_8020islpulse      : out   std_logic_vector(3 downto 0);
+    O_8020mdpulse       : out   std_logic_vector(7 downto 0);
+    
+    ----------pll configuration
+    O_pll_rst           : out   std_logic;
+    O_pll_sync          : out   std_logic;
+    O_pll_sdio          : out   std_logic;
+    O_pll_pd            : out   std_logic;
+    O_pll_cs            : out   std_logic;
+    O_pll_sclk          : out   std_logic;                   
+    I_pll_refmon        : in    std_logic; 
+    I_pll_ld            : in    std_logic; 
+    I_pll_status        : in    std_logic; 
+    I_pll_sdo           : in    std_logic; 
+                        
+    I_iotrig            : in    std_logic;   --X10
+    I_ioenable          : in    std_logic;   --X2 
+                        
+    BEEP                : in    std_logic;
+    DA_SYNC             : in    std_logic;
+    DA_SCLK             : in    std_logic;
+    DA_DIN              : in    std_logic;
+                        
+    FPGA_IO0            : in    std_logic;
+    FPGA_IO1            : in    std_logic;
+                        
+    SRAM_WE             : in    std_logic;
+    SRAM_OE             : in    std_logic;
+    SRAM_CLK            : in    std_logic;                                 
+    SRAM_ADV            : in    std_logic;
+    SRAM_CRE            : in    std_logic;
+    SRAM_LB             : in    std_logic;
+    SRAM_UB             : in    std_logic;
+                        
+    O_swi_dir           : out   std_logic;
+    O_swi_oe            : out   std_logic;
+    I_swi0              : in    std_logic;
+    I_swi1              : in    std_logic;
+    I_swi2              : in    std_logic;
+    I_swi3              : in    std_logic;
+    I_swi4              : in    std_logic;
+    PCIE_SMCLK          : in    std_logic;
+    PCIE_SMDAT          : in    std_logic;
+    PCIE_WAKE           : in    std_logic;
+    PCIE_PERST          : in    std_logic;
+    DAC_SLEEP           : in    std_logic;
+    DAC_GD0             : in    std_logic;
+    DAC_GD1             : in    std_logic;
+    DAC_GD2             : in    std_logic;
+    DAC_GD3             : in    std_logic;
+    DAC_GD4             : in    std_logic;
+    DAC_GD5             : in    std_logic;
+    DAC_GD6             : in    std_logic;
+    DAC_GD7             : in    std_logic;
+    
+    SRAM_D0             : in    std_logic;
+    SRAM_D1             : in    std_logic;
+    SRAM_D2             : in    std_logic;
+    SRAM_D3             : in    std_logic;
+    SRAM_D4             : in    std_logic;
+    SRAM_D5             : in    std_logic;
+    SRAM_D6             : in    std_logic;
+    SRAM_D7             : in    std_logic;
+    SRAM_D8             : in    std_logic;
+    SRAM_D9             : in    std_logic;
+    SRAM_D10            : in    std_logic;
+    SRAM_D11            : in    std_logic;
+    SRAM_D12            : in    std_logic;
+    SRAM_D13            : in    std_logic;
+    SRAM_D14            : in    std_logic;
+    SRAM_D15            : in    std_logic;
+                        
+    SRAM_A0             : in    std_logic;
+    SRAM_A1             : in    std_logic;
+    SRAM_A2             : in    std_logic;
+    SRAM_A3             : in    std_logic;
+    SRAM_A4             : in    std_logic;
+    SRAM_A5             : in    std_logic;
+    SRAM_A6             : in    std_logic;
+    SRAM_A7             : in    std_logic;
+    SRAM_A8             : in    std_logic;
+    SRAM_A9             : in    std_logic;
+    SRAM_A10            : in    std_logic;
+    SRAM_A11            : in    std_logic;
+    SRAM_A12            : in    std_logic;
+    SRAM_A13            : in    std_logic;
+    SRAM_A14            : in    std_logic;
+    SRAM_A15            : in    std_logic;
+    SRAM_A16            : in    std_logic;
+    SRAM_A17            : in    std_logic;
+    SRAM_A18            : in    std_logic;
+    SRAM_A19            : in    std_logic;
+    SRAM_A20            : in    std_logic;
+    SRAM_A21            : in    std_logic;
+                        
+    SRAM_WAIT           : in    std_logic;
+    SRAM_CE             : in    std_logic;
+                        
+    ----------USB                 
+    O_usb_pclk          : out   std_logic;                           --CTL[0] SLCS#    
+                                                                    --CTL[1] SLWR#    
+    I_usb_flga          : in    std_logic := '0';                     --CTL[2] SLOE#    
+    I_usb_flgb          : in    std_logic := '0';                     --CTL[3] SLRD#    
+                                                                 --CTL[4] FLAGA    
+    O_usb_cs            : out   std_logic;                             --CTL[5] FLAGB    
+    O_usb_wr            : out   std_logic;                             --CTL[7] PKTEND#  
+    O_usb_rd            : out   std_logic;                             --CTL[11] A1      
+    O_usb_oe            : out   std_logic;                             --CTL[12] A0      
+    O_usb_a0            : out   std_logic;
+    O_usb_a1            : out   std_logic;
+    O_usb_pkt           : out   std_logic;    
+    O_usb_int           : out   std_logic;
+    O_usb_reset         : out   std_logic; 
+    IO_usb_dq           : inout std_logic_vector(31 downto 0);
+                        
+    O_usb_uart_rxd      : out   std_logic;
+    I_usb_uart_rts      : in    std_logic;
+    I_usb_uart_txd      : in    std_logic;
+    O_usb_uart_cts      : out   std_logic;
+    ----------USB unused
+    USB_CTL6            : in    std_logic;
+    USB_CTL8            : in    std_logic;
+    USB_CTL9            : in    std_logic;
+    USB_CTL10           : in    std_logic;
+    O_usb_clk           : out   std_logic;  
+    O_usb_i2s           : out   std_logic_vector(3 downto 0);
+    O_usb_gpio          : out   std_logic_vector(5 downto 0); 
+    
+--    PCIE_RX_0           : in    std_logic;
+--    PCIE_RX_1           : in    std_logic;
+--    PCIE_RX_2           : in    std_logic;
+--    PCIE_RX_3           : in    std_logic;
+--    PCIE_TX_0           : out   std_logic;
+--    PCIE_TX_1           : out   std_logic;
+--    PCIE_TX_2           : out   std_logic;
+--    PCIE_TX_3           : out   std_logic;
+--    PCIE_RCLK           : in    std_logic;
+
+    USB_CLKIN           : in    std_logic;
+--    FPGA_CLK            : in    std_logic;--LVDS
+                             
+    DAC_GCLK            : in    std_logic;
+    KEYIN0              : in    std_logic;
+                        
+    O_led               : out   std_logic_vector(3 downto 0)
+    );
+end HUCB2P0_TOP;
+
+architecture arc_HUCB2P0_TOP of HUCB2P0_TOP is
+
+component pll_conf 
+port
+(
+     I_clk              : in    std_logic;
+     I_reset            : in    std_logic; 
+                        
+     O_ADC_ready        : out   std_logic;                                
+     O_FPGA_ADC_d       : out   std_logic; 
+     O_FPGA_ADC_clk     : out   std_logic;  
+     O_FPGA_ADC_en      : out   std_logic;
+     O_FPGA_ADC_reset   : out   std_logic 
+);
+end component;
+
+component  LED_HANDLE 
+port
+    (
+    I_26M_clk           : in    std_logic;
+    I_reset             : in    std_logic;
+                        
+    I_led_dis           : in    std_logic_vector(3 downto 0);
+    I_adc_dis           : in    std_logic;
+    I_fifo_full         : in    std_logic;
+                        
+    O_fpga_led0         : out   std_logic; 
+    O_fpga_led1         : out   std_logic;                                     
+    O_fpga_led2         : out   std_logic; 
+    O_fpga_led3         : out   std_logic
+    );
+end component;
+
+component frontend
+port
+    (
+    I_reset             : in    std_logic;                     
+    I_sys_clk           : in    std_logic;                    
+                                
+    I_scan_trig         : in    std_logic;   --scan triger
+    I_reg_csr           : in    std_logic_vector(31 downto 0);
+                                
+    --ADC                       
+    I_adc_d             : in    std_logic_vector(11 downto 0); 
+    I_adc_or            : in    std_logic;               
+                                
+    I_f2pc_full         : in    std_logic;
+                                
+    O_pixel_symbol      : out   std_logic; 
+    O_pixel_en          : out   std_logic; 
+    O_pixel_data        : out   std_logic_vector(15 downto 0);
+    O_pulse_trig        : out   std_logic 
+    );
+end component; 
+
+component Interface
+port
+    (
+    I_reset             : in    std_logic;          
+    I_sys_clk           : in    std_logic;                     
+                                
+    --work control              
+    O_register          : out   std_logic_vector(31 downto 0);    
+    
+    --image data output
+    I_data_en           : in    std_logic; 
+    I_data_symbol       : in    std_logic; 
+    I_data              : in    std_logic_vector(15 downto 0); 
+                        
+    ---usb FIFO         
+    O_wfifo_reset       : out   std_logic; 
+                                
+    O_usb_wrreq         : out   std_logic;  
+    O_usb_din           : out   std_logic_vector(15 downto 0);
+                        
+    O_usb_rdreq         : out   std_logic; 
+    I_usb_dout          : in    std_logic_vector(31 downto 0);
+    I_usb_rdempty       : in    std_logic   
+    );
+end component;
+
+component usbcore is
+generic
+    (
+    DW                  : integer := 32;                         --data width 
+    AW                  : integer := 11;                         -- fifo usedw width 
+    STS                 : integer := 8                         --rd or wr state size
+    );
+port
+    (
+    I_usb_nrst          : in    std_logic;
+    I_usb_clk           : in    std_logic;        --90Mhz/<=100MHz
+    I_sys_clk           : in    std_logic;        --system clock 180MHz
+------------------fifo control-----------
+    I_wfifo_aclr        : in    std_logic;
+    I_usb_wrreq         : in    std_logic;
+    I_usb_din           : in    std_logic_vector(15 downto 0);
+    O_usb_wrfull        : out   std_logic;
+    O_usb_wrusedw       : out   std_logic_vector(15 downto 0);
+                                
+    I_usb_rdreq         : in    std_logic;
+    O_usb_dout          : out   std_logic_vector(DW-1 downto 0);
+    O_usb_rdempty       : out   std_logic;
+    O_usb_rdusedw       : out   std_logic_vector(4 downto 0);            
+----------------usb interface-------------
+    O_usb_pclk          : out   std_logic;            
+    I_usb_flga          : in    std_logic := '0'; 
+    I_usb_flgb          : in    std_logic := '0';          
+    O_usb_cs            : out   std_logic; 
+    O_usb_wr            : out   std_logic; 
+    O_usb_rd            : out   std_logic; 
+    O_usb_oe            : out   std_logic;  
+    O_usb_a0            : out   std_logic;
+    O_usb_a1            : out   std_logic;
+    O_usb_pkt           : out   std_logic;    
+    O_usb_reset         : out   std_logic;     
+    O_usb_uart_rxd      : out   std_logic;
+    I_usb_uart_txd      : in    std_logic;                           
+    O_usb_clk           : out   std_logic;                         
+    IO_usb_dq           : inout std_logic_vector(31 downto 0)
+    );
+end component;
+
+component usb_121pll
+port
+    (
+    refclk              : in    std_logic := '0'; --  refclk.clk
+    rst                 : in    std_logic := '0'; --   reset.reset
+    outclk_0            : out   std_logic;        -- outclk0.clk
+    locked              : out   std_logic         --  locked.export
+    );
+end component;
+
+component pulse 
+port
+    (
+    I_clk               : in    std_logic;
+    I_reset             : in    std_logic;     
+    I_pulse_trig        : in    std_logic;
+                          
+    O_pulse             : out   std_logic_vector(3 downto 0)
+    );
+end component;
+
+component AD9634
+port
+    ( 
+    I_adce_clk      : in    std_logic;
+    I_adce_d        : in    std_logic_vector(5 downto 0);
+    I_adce_or       : in    std_logic;--LVDS
+    O_adce_csb      : out   std_logic;
+    O_adce_sdio     : out   std_logic;
+    O_adce_sclk     : out   std_logic;
+ 
+    O_adce_data     : out std_logic_vector(11 downto 0)
+    );
+end component; 
+
+component AD9235
+port
+    ( 
+    I_m_adc_d       : in    std_logic_vector(11 downto 0);
+    O_m_adc_clk     : out    std_logic;
+    I_m_adc_otr     : in    std_logic;
+    O_m_adc_pdwn    : out    std_logic
+    );
+end component; 
+
+component ADS58C48
+port
+    ( 
+    O_adca_sen      : out   std_logic;
+    I_adca_sd       : in    std_logic;
+    O_adca_sdata    : out   std_logic;
+    O_adca_sclk     : out   std_logic;
+    O_adca_rst      : out   std_logic;
+    O_adca_pdn      : out   std_logic;
+    O_adca_snrb0    : out   std_logic;
+    O_adca_snrb1    : out   std_logic;   
+    
+    I_adca_oclk     : in    std_logic;
+
+    I_adca_d        : in    std_logic_vector(5 downto 0);
+    I_adcb_d        : in    std_logic_vector(5 downto 0);
+    I_adcc_d        : in    std_logic_vector(5 downto 0);
+    I_adcd_d        : in    std_logic_vector(5 downto 0);
+    
+    O_adca_data     : out   std_logic_vector(11 downto 0);
+    O_adcb_data     : out   std_logic_vector(11 downto 0);
+    O_adcc_data     : out   std_logic_vector(11 downto 0);
+    O_adcd_data     : out   std_logic_vector(11 downto 0)
+    );
+end component; 
+
+signal S_usb_wrfull     : std_logic:= '0';
+                        
+signal S_pulse          : std_logic_vector (3 downto 0);
+signal s_trig_pulse     : std_logic;
+                        
+constant c_speed_test   : integer := 40000;                          
+                        
+signal s_reset          : std_logic := '0';
+                        
+signal s_scan_trig      : std_logic; 
+signal s_scan_trig_buf  : std_logic; 
+                        
+signal s_pll_reset      : std_logic;
+signal S_pll_ready      : std_logic;
+                        
+signal S_usb_wrreq      : std_logic;
+signal S_usb_din        : std_logic_vector(15 downto 0);
+                        
+signal S_usb_wrusedw    : std_logic_vector(15 downto 0):="0000000000000000";
+signal S_usb_rdreq      : std_logic;
+signal S_usb_dout       : std_logic_vector(31 downto 0);
+signal S_usb_rdempty    : std_logic;
+signal S_usb_rdusedw    : std_logic_vector(4 downto 0);    
+------------usb write state-------------
+signal S_usb_wr_state   : std_logic_vector(1 downto 0);
+signal S_usb_wr_cnt     : std_logic_vector(9 downto 0);
+------------usb read state--------------
+signal S_usb_pulse_state: std_logic_vector(1 downto 0);
+
+signal s_usb_clk        : std_logic; 
+signal s_pll_locked     : std_logic; 
+
+-------constant for reset and logic judgement------------------
+constant C_RST_ON       : std_logic := '0';                             --reset signal the system is low reset 
+constant C_ACT_ON       : std_logic := '1';                             --logic  judgement signal 
+constant C_ACT_OFF      : std_logic := '0';    
+                        
+signal S_case_test      : std_logic_vector(1 downto 0);
+signal S_case_work      : std_logic_vector(1 downto 0);
+                        
+signal S_ad_buf         : std_logic_vector(11 downto 0);
+signal S_ad_1buf        : std_logic_vector(15 downto 0);
+                        
+signal S_register       : std_logic_vector(31 downto 0):="00000000000000000000000000000000";
+signal s_test_cn        : std_logic_vector(19 downto 0);
+signal s_work_cn        : std_logic_vector(19 downto 0);
+signal s_line_no        : std_logic_vector(15 downto 0);
+signal s_line_comb      : std_logic_vector(15 downto 0);
+                        
+signal s_pixel_data     : std_logic_vector(15 downto 0); 
+signal S_pixel_symbol   : std_logic; 
+signal S_pixel_en       : std_logic; 
+                        
+signal s_sys_clk        : std_logic; 
+                        
+signal s_sys_reset      : std_logic; 
+signal s_pll_lock       : std_logic; 
+signal S_pulse_trig     : std_logic; 
+                        
+signal S_swi4           : std_logic;
+signal S_swi4_cnt       : std_logic_vector (17 downto 0):="000000000000000000";
+signal S_swi4_dclk      : std_logic;
+
+signal S_adce_data : std_logic_vector(11 downto 0);
+
+signal S_adca_data : std_logic_vector(11 downto 0);
+signal S_adcb_data : std_logic_vector(11 downto 0);
+signal S_adcc_data : std_logic_vector(11 downto 0);
+signal S_adcd_data : std_logic_vector(11 downto 0);
+
+begin   
+
+s_sys_clk <= I_adcf_clk;
+
+O_pll_pd <= '1';   --Chip Power Down, Active Low
+O_pll_sync <= '1';   --Manual Synchronizations and Manual Holdover, Active Low
+O_pll_rst <= not s_pll_reset;
+
+O_adcf_pwdn <= '0';
+O_adcf_csb <= '1';
+O_adcf_sclk <= '1';
+O_adcf_sdio <= '1';
+O_adcf_reset <= '1';
+
+--------------------------------
+--pulse
+--------------------------------
+--O_pulse_0pd <= '0';  --1 power down
+--O_pulse_1pd <= '0'; 
+--O_pulse_2pd <= '0';  
+--O_pulse_3pd <= '0'; 
+
+--O_pulse <= S_pulse; 
+--O_8020islpulse <= S_pulse; 
+--O_8020mdpulse(7 downto 6) <= S_pulse(1 downto 0);
+O_8220pulse(3 downto 0) <= S_pulse(3 downto 0);
+
+U0 : pll_conf
+port map
+    (
+    I_clk               => I_ref_clk,
+    I_reset             => I_reset  ,
+                        
+    O_ADC_ready         => S_pll_ready,                           
+    O_FPGA_ADC_d        => O_pll_sdio,    
+    O_FPGA_ADC_clk      => O_pll_sclk,
+    O_FPGA_ADC_en       => O_pll_cs, 
+    O_FPGA_ADC_reset    => s_pll_reset       
+    ); 
+
+U1_LED_HANDLE : LED_HANDLE
+port map
+    (   
+    I_26M_clk           => I_ref_clk    ,
+    I_reset             => I_reset      ,
+    I_led_dis           => "0100"       ,
+                        
+    I_adc_dis           => '0'   ,
+    I_fifo_full         => S_usb_wrfull  ,
+                        
+    O_fpga_led0         => O_led(0)     ,
+    O_fpga_led1         => O_led(1)     ,
+    O_fpga_led2         => O_led(2)     ,
+    O_fpga_led3         => O_led(3)
+    );
+
+U0_pulse :   pulse 
+port  map
+    (
+    I_clk               => I_adcf_clk,     
+    I_reset             => I_reset,      
+    I_pulse_trig        => S_pulse_trig,--s_trig_pulse,
+                           
+    O_pulse             => S_pulse
+    );  
+
+--------------------------------
+--pulse
+--------------------------------
+O_pulse_0pd <= '0';  --1 power down
+O_pulse_1pd <= '0'; 
+O_pulse_2pd <= '1';  
+O_pulse_3pd <= '1'; 
+
+--O_pulse <= S_pulse;  
+
+process(s_sys_clk, I_reset)
+begin
+    if I_reset = '0' then
+        S_swi4_cnt <= (others=>'0');
+        S_swi4_dclk <= '0';
+    elsif rising_edge(s_sys_clk) then
+        S_swi4_cnt <= S_swi4_cnt + 1;       
+        if (S_swi4_cnt = 0)then                  
+            S_swi4_dclk <= not S_swi4_dclk;  
+        end if;
+    end if;
+end process; 
+
+process(S_swi4_dclk)
+begin
+    if rising_edge(S_swi4_dclk) then
+        S_swi4 <= I_swi4;
+    end if;
+end process; 
+
+s_sys_reset <= not I_reset;
+
+U4_usb_pll : usb_121pll
+port map
+    (
+    refclk              => I_ref_clk,
+    rst                 => s_sys_reset,
+    outclk_0            => s_usb_clk,
+    locked              => s_pll_lock
+    );
+
+U0_frontend : frontend 
+port map
+    (
+    I_reset             => I_reset      ,       
+    I_sys_clk           => s_sys_clk    ,         
+                        
+    I_scan_trig         => I_swi1,--S_swi4,--s_trig_pulse  ,
+    I_reg_csr           => s_register,    
+                        
+    --ADC                                    
+    I_adc_d             => I_adcf_d,
+    I_adc_or            => I_adcf_or    ,       
+                                                     
+    I_f2pc_full         => S_usb_wrfull ,
+                        
+    O_pixel_symbol      => S_pixel_symbol,
+    O_pixel_en          => S_pixel_en,                            
+    O_pixel_data        => S_pixel_data,
+    O_pulse_trig        => S_pulse_trig
+    ); 
+
+U4_interface : Interface
+port map
+    (
+    I_reset             => I_reset,        
+    I_sys_clk           => s_sys_clk,                        
+                       
+    --work control     
+    O_register          => s_register, 
+    
+    --image data output
+    I_data_en           => S_pixel_en, 
+    I_data_symbol       => S_pixel_symbol, --BAO QIANG
+    I_data              => S_pixel_data,
+                        
+    ---usb FIFO         
+    O_wfifo_reset       => s_reset,    
+    O_usb_wrreq         => S_usb_wrreq,
+    O_usb_din           => S_usb_din,                       
+    O_usb_rdreq         => S_usb_rdreq,
+    I_usb_dout          => S_usb_dout,
+    I_usb_rdempty       => S_usb_rdempty  
+    );
+
+U3_usbcore : usbcore
+port map
+    (
+    I_usb_nrst          => I_reset,
+    I_usb_clk           => s_usb_clk,                --90Mhz
+    I_sys_clk           => s_sys_clk,                --system clock 180MHz
+--------------fifo control---------------  
+    I_wfifo_aclr        => s_reset,
+    I_usb_wrreq         => S_usb_wrreq,
+    I_usb_din           => S_usb_din,
+    O_usb_wrfull        => S_usb_wrfull,
+    O_usb_wrusedw       => S_usb_wrusedw,
+                    
+    I_usb_rdreq         => S_usb_rdreq,
+    O_usb_dout          => S_usb_dout,
+    O_usb_rdempty       => S_usb_rdempty,
+    O_usb_rdusedw       => S_usb_rdusedw,        
+--------------usb interface--------------
+    O_usb_pclk          => O_usb_pclk,          
+    I_usb_flga          => I_usb_flga, 
+    I_usb_flgb          => I_usb_flgb,         
+    O_usb_cs            => O_usb_cs, 
+    O_usb_wr            => O_usb_wr,  
+    O_usb_rd            => O_usb_rd, 
+    O_usb_oe            => O_usb_oe, 
+    O_usb_a0            => O_usb_a0,
+    O_usb_a1            => O_usb_a1,
+    O_usb_pkt           => O_usb_pkt,    
+    O_usb_reset         => O_usb_reset,     
+    O_usb_uart_rxd      => O_usb_uart_rxd,
+    I_usb_uart_txd      => I_usb_uart_txd,                           
+    O_usb_clk           => O_usb_clk,                         
+    IO_usb_dq           => IO_usb_dq
+    );                     
+
+U5_AD9634 : AD9634
+port map
+    ( 
+    I_adce_clk      => I_adce_clk,
+    I_adce_d        => I_adce_d,
+    I_adce_or       => I_adce_or,
+    O_adce_csb      => O_adce_csb,
+    O_adce_sdio     => O_adce_sdio,
+    O_adce_sclk     => O_adce_sclk,
+ 
+    O_adce_data     => S_adce_data
+    );
+
+U6_AD9235 : AD9235
+port map
+    ( 
+    I_m_adc_d       => I_m_adc_d,
+    O_m_adc_clk     => O_m_adc_clk,
+    I_m_adc_otr     => I_m_adc_otr,
+    O_m_adc_pdwn    => O_m_adc_pdwn
+    );
+
+U7_ADS58C48 : ADS58C48
+port map
+    ( 
+    O_adca_sen      => O_adca_sen,
+    I_adca_sd       => I_adca_sd,
+    O_adca_sdata    => O_adca_sdata,
+    O_adca_sclk     => O_adca_sclk,
+    O_adca_rst      => O_adca_rst,
+    O_adca_pdn      => O_adca_pdn,
+    O_adca_snrb0    => O_adca_snrb0,
+    O_adca_snrb1    => O_adca_snrb1,
+
+    I_adca_oclk     => I_adca_oclk, 
+
+    I_adca_d        => I_adca_d,
+    I_adcb_d        => I_adcb_d,
+    I_adcc_d        => I_adcc_d,
+    I_adcd_d        => I_adcd_d,
+                              
+    O_adca_data     => S_adca_data,
+    O_adcb_data     => S_adcb_data,
+    O_adcc_data     => S_adcc_data,
+    O_adcd_data     => S_adcd_data
+    );                    
+    
+O_swi_dir <= '1';
+O_swi_oe <= '0';
+                          
+end arc_HUCB2P0_TOP;                                                                                                                         
+                      

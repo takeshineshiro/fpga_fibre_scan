@@ -1,0 +1,50 @@
+--altddio_in CBX_DECLARE_ALL_CONNECTED_PORTS="OFF" DEVICE_FAMILY="Cyclone V" IMPLEMENT_INPUT_IN_LCELL="ON" INVERT_INPUT_CLOCKS="OFF" POWER_UP_HIGH="OFF" WIDTH=6 datain dataout_h dataout_l inclock
+--VERSION_BEGIN 14.0 cbx_altddio_in 2014:06:17:18:06:03:SJ cbx_cycloneii 2014:06:17:18:06:03:SJ cbx_maxii 2014:06:17:18:06:03:SJ cbx_mgl 2014:06:17:18:10:38:SJ cbx_stratix 2014:06:17:18:06:03:SJ cbx_stratixii 2014:06:17:18:06:03:SJ cbx_stratixiii 2014:06:17:18:06:03:SJ cbx_stratixv 2014:06:17:18:06:03:SJ cbx_util_mgl 2014:06:17:18:06:03:SJ  VERSION_END
+
+
+-- Copyright (C) 1991-2014 Altera Corporation. All rights reserved.
+--  Your use of Altera Corporation's design tools, logic functions 
+--  and other software and tools, and its AMPP partner logic 
+--  functions, and any output files from any of the foregoing 
+--  (including device programming or simulation files), and any 
+--  associated documentation or information are expressly subject 
+--  to the terms and conditions of the Altera Program License 
+--  Subscription Agreement, the Altera Quartus II License Agreement,
+--  the Altera MegaCore Function License Agreement, or other 
+--  applicable license agreement, including, without limitation, 
+--  that your use is for the sole purpose of programming logic 
+--  devices manufactured by Altera and sold by Altera or its 
+--  authorized distributors.  Please refer to the applicable 
+--  agreement for further details.
+
+
+FUNCTION cyclonev_ddio_in (areset, clk, clkn, datain, ena, sreset)
+WITH ( async_mode, power_up, sync_mode, use_clkn)
+RETURNS ( regouthi, regoutlo);
+
+--synthesis_resources = IO 6 
+OPTIONS ALTERA_INTERNAL_OPTION = "ANALYZE_METASTABILITY=OFF";
+
+SUBDESIGN ddio_in_o5i
+( 
+	datain[5..0]	:	input;
+	dataout_h[5..0]	:	output;
+	dataout_l[5..0]	:	output;
+	inclock	:	input;
+) 
+VARIABLE 
+	ddio_ina[5..0] : cyclonev_ddio_in
+		WITH (
+			async_mode = "none",
+			power_up = "low",
+			sync_mode = "none",
+			use_clkn = "false"
+		);
+
+BEGIN 
+	ddio_ina[].clk = inclock;
+	ddio_ina[].datain = datain[];
+	dataout_h[] = ddio_ina[].regouthi;
+	dataout_l[] = ddio_ina[].regoutlo;
+END;
+--VALID FILE

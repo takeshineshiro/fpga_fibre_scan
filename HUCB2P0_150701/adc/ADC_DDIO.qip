@@ -1,0 +1,8 @@
+set_global_assignment -name IP_TOOL_NAME "ALTDDIO_IN"
+set_global_assignment -name IP_TOOL_VERSION "12.1"
+set_global_assignment -name VHDL_FILE [file join $::quartus(qip_path) "ADC_DDIO.vhd"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "ADC_DDIO.bsf"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "ADC_DDIO_inst.vhd"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "ADC_DDIO.inc"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "ADC_DDIO.cmp"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "ADC_DDIO.ppf"]

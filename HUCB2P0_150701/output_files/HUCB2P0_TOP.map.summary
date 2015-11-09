@@ -1,0 +1,17 @@
+Analysis & Synthesis Status : Successful - Thu Oct 29 15:23:43 2015
+Quartus II 64-Bit Version : 14.0.0 Build 200 06/17/2014 SJ Full Version
+Revision Name : HUCB2P0_TOP
+Top-level Entity Name : HUCB2P0_TOP
+Family : Cyclone V
+Logic utilization (in ALMs) : N/A
+Total registers : 4626
+Total pins : 307
+Total virtual pins : 0
+Total block memory bits : 1,142,400
+Total DSP Blocks : 0
+Total HSSI RX PCSs : 0
+Total HSSI PMA RX Deserializers : 0
+Total HSSI TX PCSs : 0
+Total HSSI PMA TX Serializers : 0
+Total PLLs : 2
+Total DLLs : 0
